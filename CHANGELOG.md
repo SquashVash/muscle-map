@@ -10,3 +10,6 @@
 
 ## 1.0.3
 - Neck and Lower Back Implementation
+
+## 1.0.4
+- Fix spelling of 'hamstrings', correct 'lats' mapping and add 'upper back'

@@ -1,6 +1,6 @@
 name: muscle_selector
 description: "Human Body Muscle Selector for Flutter."
-version: 1.0.3
+version: 1.0.4
 homepage: https://github.com/EmilCes/muscle_selector.git
 
 environment:
