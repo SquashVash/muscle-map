@@ -28,7 +28,8 @@ class Parser {
     'forearm': ['forearm1', 'forearm2', 'forearm3', 'forearm4'],
     'glutes': ['glutes1', 'glutes2'],
     'harmstrings': ['harmstrings1', 'harmstrings2'],
-    'lats': ['lats1', 'lats2', 'lats3', 'lats4'],
+    'lats': ['lats1', 'lats2'],
+    'upper_back':['upper_back1', 'upper_back2']
     'quads': ['quads1', 'quads2', 'quads3', 'quads4'],
     'trapezius': ['trapezius1', 'trapezius2', 'trapezius3', 'trapezius4', 'trapezius5'],
     'triceps': ['triceps1', 'triceps2'],
