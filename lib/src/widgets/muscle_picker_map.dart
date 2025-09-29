@@ -51,6 +51,15 @@ class MusclePickerMapState extends State<MusclePickerMap> {
     });
   }
 
+  @override
+  void didUpdateWidget(covariant MusclePickerMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.map != widget.map) {
+      selectedMuscles.clear();
+      _loadMuscleList();
+    }
+  }
+
   _loadMuscleList() async {
     final list = await Parser.instance.svgToMuscleList(widget.map);
     _muscleList.clear();

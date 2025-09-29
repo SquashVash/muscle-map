@@ -39,6 +39,15 @@ class SizeController {
     mapSize = Size(width, height);
   }
 
+  void reset() {
+    _mapArea
+      ..minX = null
+      ..maxX = null
+      ..minY = null
+      ..maxY = null;
+    mapSize = Size.zero;
+  }
+
   double calculateScale(Size? containerSize) {
     if (containerSize == null) {
       return 1.0;

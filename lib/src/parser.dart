@@ -44,6 +44,7 @@ class Parser {
   }
 
   Future<List<Muscle>> svgToMuscleList(String body) async {
+    sizeController.reset();
     final svgMuscle = await rootBundle.loadString('${Constants.ASSETS_PATH}/$body');
     List<Muscle> muscleList = [];
 
@@ -51,7 +52,7 @@ class Parser {
 
     regExp.allMatches(svgMuscle).forEach((muscleData) {
       final id = muscleData.group(1)!;
-      final title = muscleData.group(2)!;
+      final title = (muscleData.group(2) ?? id);
       final path = parseSvgPath(muscleData.group(3)!);
 
       sizeController.addBounds(path.getBounds());
