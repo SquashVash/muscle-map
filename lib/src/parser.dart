@@ -42,6 +42,27 @@ class Parser {
     final groupIds = groupKeys.expand((groupKey) => muscleGroups[groupKey] ?? []).toSet();
     return muscleList.where((muscle) => groupIds.contains(muscle.id)).toSet();
   }
+  Set<Muscle> getMusclesByGroupsWithIntensity(Map<String, MuscleIntensity> groupKeysAndIntensity, List<Muscle> muscleList) {
+    // Build a quick lookup from muscle id -> intensity based on provided group keys.
+    final Map<String, MuscleIntensity> idToIntensity = {};
+    groupKeysAndIntensity.forEach((groupKey, intensity) {
+      final ids = muscleGroups[groupKey] ?? const <String>[];
+      for (final id in ids) {
+        idToIntensity[id] = intensity;
+      }
+    });
+
+    // Assign intensity to matching muscles and return the selected set.
+    final selected = <Muscle>{};
+    for (final muscle in muscleList) {
+      final intensity = idToIntensity[muscle.id];
+      if (intensity != null) {
+        muscle.intensity = intensity;
+        selected.add(muscle);
+      }
+    }
+    return selected;
+  }
 
   Future<List<Muscle>> svgToMuscleList(String body) async {
     sizeController.reset();
