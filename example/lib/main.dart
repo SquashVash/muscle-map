@@ -24,8 +24,18 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   Set<Muscle>? selectedMuscles;
+  Map<String, MuscleIntensity> selectedMuscleGroups = {};
   String selectedMap = Maps.BODY;
   final GlobalKey<MusclePickerMapState> _mapKey = GlobalKey();
+
+  @override
+  void initState() {
+    selectedMuscleGroups["chest"] = MuscleIntensity.light;
+    selectedMuscleGroups["biceps"] = MuscleIntensity.hard;
+    selectedMuscleGroups["triceps"] = MuscleIntensity.hard;
+    selectedMuscleGroups["shoulders"] = MuscleIntensity.medium;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,21 +80,17 @@ class _HomeViewState extends State<HomeView> {
               alignment: Alignment.center,
               child: Transform.scale(
                 scale: 1.2,
-                child: MusclePickerMap(
+                child: MuscleIntensityMap(
                   key: _mapKey,
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
                   map: selectedMap,
-                  isEditing: false,
-                  initialSelectedGroups: const ['chest', 'glutes', 'neck', 'lower_back'],
+                  initialSelectedGroups: selectedMuscleGroups,
                   onChanged: (muscles) {
                     setState(() {
                       selectedMuscles = muscles;
                     });
                   },
-                  actAsToggle: true,
-                  dotColor: Colors.black,
-                  selectedColor: Colors.lightBlueAccent,
                   strokeColor: Colors.black,
                 ),
               ),
