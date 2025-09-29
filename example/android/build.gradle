@@ -1,15 +1,4 @@
-buildscript {
-    ext.kotlin_version = '1.7.10'
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-
+// Top-level build file no longer needs buildscript with modern Gradle/AGP
 allprojects {
     repositories {
         google()
