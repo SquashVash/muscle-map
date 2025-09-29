@@ -24,6 +24,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   Set<Muscle>? selectedMuscles;
+  String selectedMap = Maps.BODY;
   final GlobalKey<MusclePickerMapState> _mapKey = GlobalKey();
 
   @override
@@ -37,6 +38,22 @@ class _HomeViewState extends State<HomeView> {
               _mapKey.currentState?.clearSelect();
               setState(() {
                 selectedMuscles = null;
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.swap_horizontal_circle, color: Colors.red),
+            onPressed: () {
+              setState(() {
+                if(selectedMap == Maps.BODY){
+                  selectedMap = Maps.FRONT_BODY;
+                }else
+                if(selectedMap == Maps.FRONT_BODY){
+                  selectedMap = Maps.BACK_BODY;
+                }else
+                if(selectedMap == Maps.BACK_BODY){
+                  selectedMap = Maps.BODY;
+                }
               });
             },
           ),
@@ -57,7 +74,7 @@ class _HomeViewState extends State<HomeView> {
                   key: _mapKey,
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
-                  map: Maps.BODY,
+                  map: selectedMap,
                   isEditing: false,
                   initialSelectedGroups: const ['chest', 'glutes', 'neck', 'lower_back'],
                   onChanged: (muscles) {
