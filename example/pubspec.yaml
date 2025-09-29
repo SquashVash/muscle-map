@@ -30,8 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   muscle_selector:
-    path: ../../muscle_selector
+    path: ..
 
 
   # The following adds the Cupertino Icons font to your application.
