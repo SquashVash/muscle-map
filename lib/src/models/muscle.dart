@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:muscle_selector/src/models/MuscleIntensity.dart';
+import 'package:muscle_map/src/models/MuscleIntensity.dart';
 
 class Muscle {
   String id;

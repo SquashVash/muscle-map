@@ -1,7 +1,7 @@
-name: muscle_selector
+name: muscle_map
 description: "Human Body Muscle Selector for Flutter."
 version: 1.0.4
-homepage: https://github.com/EmilCes/muscle_selector.git
+homepage: https://github.com/SquashVash/muscle-map.git
 
 environment:
   sdk: '>=3.2.6 <4.0.0'

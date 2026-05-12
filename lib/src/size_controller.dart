@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:muscle_selector/src/models/map_area.dart';
+import 'package:muscle_map/src/models/map_area.dart';
 
 class SizeController {
   static SizeController? _instance;

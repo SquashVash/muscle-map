@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:muscle_selector/muscle_selector.dart';
+import 'package:muscle_map/muscle_selector.dart';
 import 'package:svg_path_parser/svg_path_parser.dart';
 import 'package:collection/collection.dart';
 import 'size_controller.dart';

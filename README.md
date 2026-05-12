@@ -13,13 +13,13 @@ In the `pubspec.yaml` add the dependency:
 ```yaml
 dependencies:
   ...
-  muscle_selector: any
+  muscle_map: any
 ```
 
 In your library file add the following import:
 
 ```dart
-import 'package:muscle_selector/muscle_selector.dart';
+import 'package:muscle_map/muscle_map.dart';
 ```
 
 
