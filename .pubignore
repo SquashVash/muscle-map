@@ -1,0 +1,23 @@
+# IDE and editor files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Dart/Flutter tool cache
+.dart_tool/
+.metadata
+build/
+pubspec.lock
+
+# AI assistant files
+.claude/
+
+# Example app
+example/
+
+# Misc
+.DS_Store
+*.log
+*.swp
