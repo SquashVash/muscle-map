@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:muscle_map/muscle_selector.dart';
+import 'package:muscle_map/muscle_map.dart';
 
 void main() {
   runApp(MyApp());
