@@ -1,9 +1,12 @@
+import 'dart:ui';
+
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:muscle_map/muscle_map.dart';
 import 'package:svg_path_parser/svg_path_parser.dart';
 import 'package:collection/collection.dart';
-import 'size_controller.dart';
 import 'constant.dart';
+
+typedef ParsedMap = ({List<Muscle> muscles, Size mapSize});
 
 class Parser {
   static Parser? _instance;
@@ -13,9 +16,11 @@ class Parser {
     return _instance!;
   }
 
-  final sizeController = SizeController.instance;
-
   Parser._init();
+
+  final Map<String, ParsedMap> _cache = {};
+  final Map<String, Future<ParsedMap>> _inFlight = {};
+  bool _preloadStarted = false;
 
   static const muscleGroups = {
     'chest': ['chest1', 'chest2'],
@@ -64,10 +69,41 @@ class Parser {
     return selected;
   }
 
-  Future<List<Muscle>> svgToMuscleList(String body) async {
-    sizeController.reset();
+  Future<ParsedMap> svgToMuscleList(String body) async {
+    final cached = _cache[body];
+    if (cached != null) {
+      return (muscles: _cloneMuscles(cached.muscles), mapSize: cached.mapSize);
+    }
+
+    final inFlight = _inFlight[body];
+    final result = inFlight != null ? await inFlight : await _parse(body);
+
+    return (muscles: _cloneMuscles(result.muscles), mapSize: result.mapSize);
+  }
+
+  Future<void> preloadBundledMaps() async {
+    if (_preloadStarted) return;
+    _preloadStarted = true;
+    for (final map in const [Maps.BODY, Maps.FRONT_BODY, Maps.BACK_BODY]) {
+      if (_cache.containsKey(map)) continue;
+      await (_inFlight[map] ?? _parse(map));
+    }
+  }
+
+  Future<ParsedMap> _parse(String body) {
+    final future = _doParse(body);
+    _inFlight[body] = future;
+    future.then((result) {
+      _cache[body] = result;
+      _inFlight.remove(body);
+    });
+    return future;
+  }
+
+  Future<ParsedMap> _doParse(String body) async {
     final svgMuscle = await rootBundle.loadString('${Constants.ASSETS_PATH}/$body');
     List<Muscle> muscleList = [];
+    Rect? bounds;
 
     final regExp = RegExp(Constants.MAP_REGEXP, multiLine: true, caseSensitive: false, dotAll: false);
 
@@ -75,8 +111,9 @@ class Parser {
       final id = muscleData.group(1)!;
       final title = (muscleData.group(2) ?? id);
       final path = parseSvgPath(muscleData.group(3)!);
+      final pathBounds = path.getBounds();
 
-      sizeController.addBounds(path.getBounds());
+      bounds = bounds == null ? pathBounds : bounds!.expandToInclude(pathBounds);
 
       final muscle = Muscle(id: id, title: title, path: path);
 
@@ -93,7 +130,11 @@ class Parser {
       }
     });
 
-    return muscleList;
+    final mapSize = bounds == null ? Size.zero : Size(bounds!.width, bounds!.height);
+    return (muscles: muscleList, mapSize: mapSize);
   }
+
+  List<Muscle> _cloneMuscles(List<Muscle> source) =>
+      source.map((m) => Muscle(id: m.id, title: m.title, path: m.path)).toList();
 
 }
