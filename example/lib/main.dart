@@ -85,29 +85,31 @@ class _HomeViewState extends State<HomeView>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _SelectTab(
-            bodyMap: _bodyMap,
-            pickerKey: _pickerKey,
-            selectedMuscles: _selectedMuscles,
-            onBodyMapChanged: (map) => setState(() => _bodyMap = map),
-            onSelectionChanged: (muscles) =>
-                setState(() => _selectedMuscles = muscles),
-            onClear: () {
-              _pickerKey.currentState?.clearSelect();
-              setState(() => _selectedMuscles = {});
-            },
-          ),
-          _IntensityTab(
-            bodyMap: _bodyMap,
-            preset: _preset,
-            presets: _presets,
-            onBodyMapChanged: (map) => setState(() => _bodyMap = map),
-            onPresetChanged: (preset) => setState(() => _preset = preset),
-          ),
-        ],
+      body: SafeArea(
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            _SelectTab(
+              bodyMap: _bodyMap,
+              pickerKey: _pickerKey,
+              selectedMuscles: _selectedMuscles,
+              onBodyMapChanged: (map) => setState(() => _bodyMap = map),
+              onSelectionChanged: (muscles) =>
+                  setState(() => _selectedMuscles = muscles),
+              onClear: () {
+                _pickerKey.currentState?.clearSelect();
+                setState(() => _selectedMuscles = {});
+              },
+            ),
+            _IntensityTab(
+              bodyMap: _bodyMap,
+              preset: _preset,
+              presets: _presets,
+              onBodyMapChanged: (map) => setState(() => _bodyMap = map),
+              onPresetChanged: (preset) => setState(() => _preset = preset),
+            ),
+          ],
+        ),
       ),
     );
   }
