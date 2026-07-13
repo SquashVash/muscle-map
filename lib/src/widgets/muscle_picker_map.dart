@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:muscle_map/muscle_map.dart';
 import 'package:muscle_map/src/widgets/muscle_painter.dart';
@@ -17,6 +19,8 @@ class MusclePickerMap extends StatefulWidget {
   final bool? isEditing;
   final Set<Muscle>? initialSelectedMuscles;
   final List<String>? initialSelectedGroups;
+  final bool enableCrossfade;
+  final Duration crossfadeDuration;
 
   const MusclePickerMap({
     Key? key,
@@ -30,7 +34,9 @@ class MusclePickerMap extends StatefulWidget {
     this.actAsToggle,
     this.isEditing = false,
     this.initialSelectedMuscles,
-    this.initialSelectedGroups
+    this.initialSelectedGroups,
+    this.enableCrossfade = true,
+    this.crossfadeDuration = const Duration(milliseconds: 100),
   }) : super(key: key);
 
   @override
@@ -48,6 +54,7 @@ class MusclePickerMapState extends State<MusclePickerMap> {
   @override
   void initState() {
     super.initState();
+    unawaited(Parser.instance.preloadBundledMaps());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMuscleList();
     });
@@ -66,11 +73,12 @@ class MusclePickerMapState extends State<MusclePickerMap> {
   }
 
   _loadMuscleList() async {
-    final list = await Parser.instance.svgToMuscleList(widget.map);
+    final result = await Parser.instance.svgToMuscleList(widget.map);
     _muscleList.clear();
     setState(() {
-      _muscleList.addAll(list);
-      mapSize = _sizeController.mapSize;
+      _muscleList.addAll(result.muscles);
+      mapSize = result.mapSize;
+      _sizeController.mapSize = result.mapSize;
       _isLoading = false;
       _initializeSelectedMuscles();
     });
@@ -94,13 +102,26 @@ class MusclePickerMapState extends State<MusclePickerMap> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return MuscleMapSkeleton(width: widget.width, height: widget.height);
+    final content = _isLoading
+        ? MuscleMapSkeleton(
+            key: const ValueKey('skeleton'),
+            width: widget.width,
+            height: widget.height,
+          )
+        : Stack(
+            key: ValueKey('map-${widget.map}'),
+            children: [
+              for (var muscle in _muscleList) _buildStackItem(muscle),
+            ],
+          );
+
+    if (!widget.enableCrossfade) {
+      return content;
     }
-    return Stack(
-      children: [
-        for (var muscle in _muscleList) _buildStackItem(muscle),
-      ],
+
+    return AnimatedSwitcher(
+      duration: widget.crossfadeDuration,
+      child: content,
     );
   }
 

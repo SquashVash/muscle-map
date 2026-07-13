@@ -1,10 +1,15 @@
+import 'dart:async';
+
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:muscle_map/muscle_map.dart';
 import 'package:muscle_map/src/widgets/muscle_painter.dart';
 import 'package:muscle_map/src/widgets/muscle_map_skeleton.dart';
-import '../models/MuscleIntensity.dart';
 import '../parser.dart';
 import '../size_controller.dart';
+
+const _mapEquality = MapEquality<String, MuscleIntensity>();
+const _setEquality = SetEquality<Muscle>();
 
 class MuscleIntensityMap extends StatefulWidget {
   final double? width;
@@ -14,6 +19,8 @@ class MuscleIntensityMap extends StatefulWidget {
   final Color? strokeColor;
   final Set<Muscle>? initialSelectedMuscles;
   final Map<String, MuscleIntensity>? initialSelectedGroups;
+  final bool enableCrossfade;
+  final Duration crossfadeDuration;
 
   const MuscleIntensityMap({
     Key? key,
@@ -23,7 +30,9 @@ class MuscleIntensityMap extends StatefulWidget {
     this.height,
     this.strokeColor,
     this.initialSelectedMuscles,
-    this.initialSelectedGroups
+    this.initialSelectedGroups,
+    this.enableCrossfade = true,
+    this.crossfadeDuration = const Duration(milliseconds: 100),
   }) : super(key: key);
 
   @override
@@ -41,6 +50,7 @@ class MuscleIntensityMapState extends State<MuscleIntensityMap> {
   @override
   void initState() {
     super.initState();
+    unawaited(Parser.instance.preloadBundledMaps());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMuscleList();
     });
@@ -55,15 +65,29 @@ class MuscleIntensityMapState extends State<MuscleIntensityMap> {
         _isLoading = true;
       });
       _loadMuscleList();
+    } else if (!_selectionEquals(oldWidget, widget)) {
+      setState(() {
+        for (final muscle in _muscleList) {
+          muscle.intensity = MuscleIntensity.none;
+        }
+        selectedMuscles.clear();
+        _initializeSelectedMuscles();
+      });
     }
   }
 
+  bool _selectionEquals(MuscleIntensityMap a, MuscleIntensityMap b) {
+    return _setEquality.equals(a.initialSelectedMuscles, b.initialSelectedMuscles) &&
+        _mapEquality.equals(a.initialSelectedGroups, b.initialSelectedGroups);
+  }
+
   _loadMuscleList() async {
-    final list = await Parser.instance.svgToMuscleList(widget.map);
+    final result = await Parser.instance.svgToMuscleList(widget.map);
     _muscleList.clear();
     setState(() {
-      _muscleList.addAll(list);
-      mapSize = _sizeController.mapSize;
+      _muscleList.addAll(result.muscles);
+      mapSize = result.mapSize;
+      _sizeController.mapSize = result.mapSize;
       _isLoading = false;
       _initializeSelectedMuscles();
     });
@@ -87,13 +111,26 @@ class MuscleIntensityMapState extends State<MuscleIntensityMap> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return MuscleMapSkeleton(width: widget.width, height: widget.height);
+    final content = _isLoading
+        ? MuscleMapSkeleton(
+            key: const ValueKey('skeleton'),
+            width: widget.width,
+            height: widget.height,
+          )
+        : Stack(
+            key: ValueKey('map-${widget.map}'),
+            children: [
+              for (var muscle in _muscleList) _buildStackItem(muscle),
+            ],
+          );
+
+    if (!widget.enableCrossfade) {
+      return content;
     }
-    return Stack(
-      children: [
-        for (var muscle in _muscleList) _buildStackItem(muscle),
-      ],
+
+    return AnimatedSwitcher(
+      duration: widget.crossfadeDuration,
+      child: content,
     );
   }
 
