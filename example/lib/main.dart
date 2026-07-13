@@ -215,6 +215,7 @@ class _SelectTab extends StatelessWidget {
                   runSpacing: 8,
                   children: titles.map((t) => Chip(label: Text(t))).toList(),
                 ),
+              const SizedBox(height: 12),
             ],
           ),
         ),
