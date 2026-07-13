@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muscle_map/muscle_map.dart';
 import 'package:muscle_map/src/widgets/muscle_painter.dart';
+import 'package:muscle_map/src/widgets/muscle_map_skeleton.dart';
 import '../parser.dart';
 import '../size_controller.dart';
 
@@ -42,6 +43,7 @@ class MusclePickerMapState extends State<MusclePickerMap> {
 
   final _sizeController = SizeController.instance;
   Size? mapSize;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -55,7 +57,10 @@ class MusclePickerMapState extends State<MusclePickerMap> {
   void didUpdateWidget(covariant MusclePickerMap oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.map != widget.map) {
-      selectedMuscles.clear();
+      setState(() {
+        selectedMuscles.clear();
+        _isLoading = true;
+      });
       _loadMuscleList();
     }
   }
@@ -66,6 +71,7 @@ class MusclePickerMapState extends State<MusclePickerMap> {
     setState(() {
       _muscleList.addAll(list);
       mapSize = _sizeController.mapSize;
+      _isLoading = false;
       _initializeSelectedMuscles();
     });
   }
@@ -88,6 +94,9 @@ class MusclePickerMapState extends State<MusclePickerMap> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return MuscleMapSkeleton(width: widget.width, height: widget.height);
+    }
     return Stack(
       children: [
         for (var muscle in _muscleList) _buildStackItem(muscle),
