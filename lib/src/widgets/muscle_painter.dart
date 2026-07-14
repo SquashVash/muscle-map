@@ -8,6 +8,9 @@ class MusclePainter extends CustomPainter {
   final Color? strokeColor;
   final Color? selectedColor;
   final Color? dotColor;
+  final double strokeWidth;
+  final StrokeCap? strokeCap;
+  final StrokeJoin? strokeJoin;
 
   final sizeController = SizeController.instance;
 
@@ -19,13 +22,18 @@ class MusclePainter extends CustomPainter {
     this.selectedColor,
     this.strokeColor,
     this.dotColor,
+    this.strokeWidth = 1.0,
+    this.strokeCap,
+    this.strokeJoin,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final pen = Paint()
       ..color = strokeColor ?? Colors.white60
-      ..strokeWidth = 1.0
+      ..strokeWidth = strokeWidth
+      ..strokeCap = strokeCap ?? StrokeCap.butt
+      ..strokeJoin = strokeJoin ?? StrokeJoin.miter
       ..style = PaintingStyle.stroke;
 
     final selectedPen = Paint()

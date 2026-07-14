@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:muscle_map/muscle_map.dart';
 import 'package:muscle_map/src/widgets/muscle_painter.dart';
 import 'package:muscle_map/src/widgets/muscle_map_skeleton.dart';
+import '../colors.dart' as intensity_colors;
 import '../parser.dart';
 import '../size_controller.dart';
 
@@ -21,6 +22,18 @@ class MuscleIntensityMap extends StatefulWidget {
   final Map<String, MuscleIntensity>? initialSelectedGroups;
   final bool enableCrossfade;
   final Duration crossfadeDuration;
+  final Color Function(MuscleIntensity intensity)? intensityColorBuilder;
+  final double strokeWidth;
+  final StrokeCap? strokeCap;
+  final StrokeJoin? strokeJoin;
+  final bool showSkeleton;
+  final WidgetBuilder? loadingBuilder;
+  final Color? skeletonColor;
+  final Duration skeletonAnimationDuration;
+  final double skeletonOpacityBegin;
+  final double skeletonOpacityEnd;
+  final Curve skeletonCurve;
+  final double skeletonBorderRadius;
 
   const MuscleIntensityMap({
     Key? key,
@@ -33,6 +46,18 @@ class MuscleIntensityMap extends StatefulWidget {
     this.initialSelectedGroups,
     this.enableCrossfade = true,
     this.crossfadeDuration = const Duration(milliseconds: 100),
+    this.intensityColorBuilder,
+    this.strokeWidth = 1.0,
+    this.strokeCap,
+    this.strokeJoin,
+    this.showSkeleton = true,
+    this.loadingBuilder,
+    this.skeletonColor,
+    this.skeletonAnimationDuration = const Duration(milliseconds: 900),
+    this.skeletonOpacityBegin = 0.4,
+    this.skeletonOpacityEnd = 1.0,
+    this.skeletonCurve = Curves.easeInOut,
+    this.skeletonBorderRadius = 16,
   }) : super(key: key);
 
   @override
@@ -112,11 +137,7 @@ class MuscleIntensityMapState extends State<MuscleIntensityMap> {
   @override
   Widget build(BuildContext context) {
     final content = _isLoading
-        ? MuscleMapSkeleton(
-            key: const ValueKey('skeleton'),
-            width: widget.width,
-            height: widget.height,
-          )
+        ? _buildLoading(context)
         : Stack(
             key: ValueKey('map-${widget.map}'),
             children: [
@@ -134,6 +155,33 @@ class MuscleIntensityMapState extends State<MuscleIntensityMap> {
     );
   }
 
+  Widget _buildLoading(BuildContext context) {
+    if (widget.loadingBuilder != null) {
+      return KeyedSubtree(
+        key: const ValueKey('skeleton'),
+        child: widget.loadingBuilder!(context),
+      );
+    }
+    if (!widget.showSkeleton) {
+      return SizedBox(
+        key: const ValueKey('skeleton'),
+        width: widget.width,
+        height: widget.height,
+      );
+    }
+    return MuscleMapSkeleton(
+      key: const ValueKey('skeleton'),
+      width: widget.width,
+      height: widget.height,
+      color: widget.skeletonColor,
+      animationDuration: widget.skeletonAnimationDuration,
+      opacityBegin: widget.skeletonOpacityBegin,
+      opacityEnd: widget.skeletonOpacityEnd,
+      curve: widget.skeletonCurve,
+      borderRadius: widget.skeletonBorderRadius,
+    );
+  }
+
   Widget _buildStackItem(Muscle muscle) {
     return GestureDetector(
       behavior: HitTestBehavior.deferToChild,
@@ -145,6 +193,9 @@ class MuscleIntensityMapState extends State<MuscleIntensityMap> {
           dotColor: getMuscleColor(muscle),
           selectedColor: getMuscleColor(muscle),
           strokeColor: widget.strokeColor,
+          strokeWidth: widget.strokeWidth,
+          strokeCap: widget.strokeCap,
+          strokeJoin: widget.strokeJoin,
         ),
         child: Container(
           width: widget.width ?? double.infinity,
@@ -159,16 +210,19 @@ class MuscleIntensityMapState extends State<MuscleIntensityMap> {
     );
   }
 
-  Color getMuscleColor(Muscle muscle){
-      switch(muscle.intensity){
-        case MuscleIntensity.none:
-          return Colors.grey;
-        case MuscleIntensity.light:
-          return Colors.amberAccent;
-        case MuscleIntensity.medium:
-          return Colors.orangeAccent;
-        case MuscleIntensity.hard:
-          return Colors.redAccent;
-      }
+  Color getMuscleColor(Muscle muscle) {
+    if (widget.intensityColorBuilder != null) {
+      return widget.intensityColorBuilder!(muscle.intensity);
+    }
+    switch (muscle.intensity) {
+      case MuscleIntensity.none:
+        return intensity_colors.Colors.none_intensity;
+      case MuscleIntensity.light:
+        return intensity_colors.Colors.light_intensity;
+      case MuscleIntensity.medium:
+        return intensity_colors.Colors.medium_intensity;
+      case MuscleIntensity.hard:
+        return intensity_colors.Colors.hard_intensity;
+    }
   }
 }

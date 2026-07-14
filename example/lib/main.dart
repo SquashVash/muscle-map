@@ -22,6 +22,68 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// Bundles every knob exposed by [MusclePickerMap] / [MuscleIntensityMap]
+/// that the Options tab lets the user play with.
+class MapOptions {
+  final double strokeWidth;
+  final StrokeCap strokeCap;
+  final StrokeJoin strokeJoin;
+  final bool showSkeleton;
+  final double skeletonBorderRadius;
+  final Duration skeletonAnimationDuration;
+  final Color? skeletonColor;
+  final bool useCustomIntensityColors;
+
+  const MapOptions({
+    this.strokeWidth = 1.0,
+    this.strokeCap = StrokeCap.butt,
+    this.strokeJoin = StrokeJoin.miter,
+    this.showSkeleton = true,
+    this.skeletonBorderRadius = 16,
+    this.skeletonAnimationDuration = const Duration(milliseconds: 900),
+    this.skeletonColor,
+    this.useCustomIntensityColors = false,
+  });
+
+  MapOptions copyWith({
+    double? strokeWidth,
+    StrokeCap? strokeCap,
+    StrokeJoin? strokeJoin,
+    bool? showSkeleton,
+    double? skeletonBorderRadius,
+    Duration? skeletonAnimationDuration,
+    Color? Function()? skeletonColor,
+    bool? useCustomIntensityColors,
+  }) {
+    return MapOptions(
+      strokeWidth: strokeWidth ?? this.strokeWidth,
+      strokeCap: strokeCap ?? this.strokeCap,
+      strokeJoin: strokeJoin ?? this.strokeJoin,
+      showSkeleton: showSkeleton ?? this.showSkeleton,
+      skeletonBorderRadius: skeletonBorderRadius ?? this.skeletonBorderRadius,
+      skeletonAnimationDuration:
+          skeletonAnimationDuration ?? this.skeletonAnimationDuration,
+      skeletonColor:
+          skeletonColor != null ? skeletonColor() : this.skeletonColor,
+      useCustomIntensityColors:
+          useCustomIntensityColors ?? this.useCustomIntensityColors,
+    );
+  }
+}
+
+Color customIntensityColor(MuscleIntensity intensity) {
+  switch (intensity) {
+    case MuscleIntensity.none:
+      return Colors.blueGrey.shade100;
+    case MuscleIntensity.light:
+      return Colors.tealAccent;
+    case MuscleIntensity.medium:
+      return Colors.purpleAccent;
+    case MuscleIntensity.hard:
+      return Colors.pinkAccent.shade700;
+  }
+}
+
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -57,11 +119,12 @@ class _HomeViewState extends State<HomeView>
   String _bodyMap = Maps.BODY;
   Set<Muscle> _selectedMuscles = {};
   String _preset = 'Push Day';
+  MapOptions _options = const MapOptions();
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -82,6 +145,7 @@ class _HomeViewState extends State<HomeView>
             Tab(
                 text: 'Intensity',
                 icon: Icon(Icons.local_fire_department_outlined)),
+            Tab(text: 'Options', icon: Icon(Icons.tune)),
           ],
         ),
       ),
@@ -93,6 +157,7 @@ class _HomeViewState extends State<HomeView>
               bodyMap: _bodyMap,
               pickerKey: _pickerKey,
               selectedMuscles: _selectedMuscles,
+              options: _options,
               onBodyMapChanged: (map) => setState(() => _bodyMap = map),
               onSelectionChanged: (muscles) =>
                   setState(() => _selectedMuscles = muscles),
@@ -105,8 +170,13 @@ class _HomeViewState extends State<HomeView>
               bodyMap: _bodyMap,
               preset: _preset,
               presets: _presets,
+              options: _options,
               onBodyMapChanged: (map) => setState(() => _bodyMap = map),
               onPresetChanged: (preset) => setState(() => _preset = preset),
+            ),
+            _OptionsTab(
+              options: _options,
+              onChanged: (options) => setState(() => _options = options),
             ),
           ],
         ),
@@ -146,6 +216,7 @@ class _SelectTab extends StatelessWidget {
   final String bodyMap;
   final GlobalKey<MusclePickerMapState> pickerKey;
   final Set<Muscle> selectedMuscles;
+  final MapOptions options;
   final ValueChanged<String> onBodyMapChanged;
   final ValueChanged<Set<Muscle>> onSelectionChanged;
   final VoidCallback onClear;
@@ -154,6 +225,7 @@ class _SelectTab extends StatelessWidget {
     required this.bodyMap,
     required this.pickerKey,
     required this.selectedMuscles,
+    required this.options,
     required this.onBodyMapChanged,
     required this.onSelectionChanged,
     required this.onClear,
@@ -178,6 +250,13 @@ class _SelectTab extends StatelessWidget {
               strokeColor: theme.colorScheme.outline,
               selectedColor: theme.colorScheme.primary,
               onChanged: onSelectionChanged,
+              strokeWidth: options.strokeWidth,
+              strokeCap: options.strokeCap,
+              strokeJoin: options.strokeJoin,
+              showSkeleton: options.showSkeleton,
+              skeletonColor: options.skeletonColor,
+              skeletonBorderRadius: options.skeletonBorderRadius,
+              skeletonAnimationDuration: options.skeletonAnimationDuration,
             ),
           ),
         ),
@@ -228,6 +307,7 @@ class _IntensityTab extends StatelessWidget {
   final String bodyMap;
   final String preset;
   final Map<String, Map<String, MuscleIntensity>> presets;
+  final MapOptions options;
   final ValueChanged<String> onBodyMapChanged;
   final ValueChanged<String> onPresetChanged;
 
@@ -235,11 +315,12 @@ class _IntensityTab extends StatelessWidget {
     required this.bodyMap,
     required this.preset,
     required this.presets,
+    required this.options,
     required this.onBodyMapChanged,
     required this.onPresetChanged,
   });
 
-  static const _legend = [
+  static const _defaultLegend = [
     ('None', Colors.grey),
     ('Light', Colors.amberAccent),
     ('Medium', Colors.orangeAccent),
@@ -249,6 +330,14 @@ class _IntensityTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final legend = options.useCustomIntensityColors
+        ? [
+            ('None', customIntensityColor(MuscleIntensity.none)),
+            ('Light', customIntensityColor(MuscleIntensity.light)),
+            ('Medium', customIntensityColor(MuscleIntensity.medium)),
+            ('Hard', customIntensityColor(MuscleIntensity.hard)),
+          ]
+        : _defaultLegend;
 
     return Column(
       children: [
@@ -275,6 +364,15 @@ class _IntensityTab extends StatelessWidget {
               initialSelectedGroups: presets[preset]!,
               strokeColor: theme.colorScheme.outline,
               onChanged: (_) {},
+              intensityColorBuilder:
+                  options.useCustomIntensityColors ? customIntensityColor : null,
+              strokeWidth: options.strokeWidth,
+              strokeCap: options.strokeCap,
+              strokeJoin: options.strokeJoin,
+              showSkeleton: options.showSkeleton,
+              skeletonColor: options.skeletonColor,
+              skeletonBorderRadius: options.skeletonBorderRadius,
+              skeletonAnimationDuration: options.skeletonAnimationDuration,
             ),
           ),
         ),
@@ -288,7 +386,7 @@ class _IntensityTab extends StatelessWidget {
           child: Wrap(
             spacing: 16,
             runSpacing: 8,
-            children: _legend.map((entry) {
+            children: legend.map((entry) {
               return Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -306,6 +404,137 @@ class _IntensityTab extends StatelessWidget {
               );
             }).toList(),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+const _skeletonColorChoices = <String, Color?>{
+  'Default': null,
+  'Blue': Colors.blueAccent,
+  'Purple': Colors.deepPurpleAccent,
+  'Green': Colors.greenAccent,
+};
+
+class _OptionsTab extends StatelessWidget {
+  final MapOptions options;
+  final ValueChanged<MapOptions> onChanged;
+
+  const _OptionsTab({required this.options, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final currentSkeletonColorLabel = _skeletonColorChoices.entries
+        .firstWhere((e) => e.value == options.skeletonColor,
+            orElse: () => _skeletonColorChoices.entries.first)
+        .key;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      children: [
+        Text('Stroke', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Text('Width: ${options.strokeWidth.toStringAsFixed(1)}',
+            style: theme.textTheme.bodySmall),
+        Slider(
+          value: options.strokeWidth,
+          min: 0.5,
+          max: 6,
+          divisions: 11,
+          label: options.strokeWidth.toStringAsFixed(1),
+          onChanged: (value) =>
+              onChanged(options.copyWith(strokeWidth: value)),
+        ),
+        const SizedBox(height: 8),
+        Text('Cap', style: theme.textTheme.bodySmall),
+        const SizedBox(height: 4),
+        SegmentedButton<StrokeCap>(
+          segments: const [
+            ButtonSegment(value: StrokeCap.butt, label: Text('Butt')),
+            ButtonSegment(value: StrokeCap.round, label: Text('Round')),
+            ButtonSegment(value: StrokeCap.square, label: Text('Square')),
+          ],
+          selected: {options.strokeCap},
+          onSelectionChanged: (selection) =>
+              onChanged(options.copyWith(strokeCap: selection.first)),
+        ),
+        const SizedBox(height: 12),
+        Text('Join', style: theme.textTheme.bodySmall),
+        const SizedBox(height: 4),
+        SegmentedButton<StrokeJoin>(
+          segments: const [
+            ButtonSegment(value: StrokeJoin.miter, label: Text('Miter')),
+            ButtonSegment(value: StrokeJoin.round, label: Text('Round')),
+            ButtonSegment(value: StrokeJoin.bevel, label: Text('Bevel')),
+          ],
+          selected: {options.strokeJoin},
+          onSelectionChanged: (selection) =>
+              onChanged(options.copyWith(strokeJoin: selection.first)),
+        ),
+        const Divider(height: 32),
+        Text('Loading skeleton', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 8),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Show skeleton while loading'),
+          value: options.showSkeleton,
+          onChanged: (value) =>
+              onChanged(options.copyWith(showSkeleton: value)),
+        ),
+        if (options.showSkeleton) ...[
+          const SizedBox(height: 4),
+          Text('Color', style: theme.textTheme.bodySmall),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 8,
+            children: _skeletonColorChoices.keys.map((label) {
+              return ChoiceChip(
+                label: Text(label),
+                selected: currentSkeletonColorLabel == label,
+                onSelected: (_) => onChanged(options.copyWith(
+                    skeletonColor: () => _skeletonColorChoices[label])),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
+          Text(
+              'Border radius: ${options.skeletonBorderRadius.toStringAsFixed(0)}',
+              style: theme.textTheme.bodySmall),
+          Slider(
+            value: options.skeletonBorderRadius,
+            min: 0,
+            max: 40,
+            divisions: 8,
+            label: options.skeletonBorderRadius.toStringAsFixed(0),
+            onChanged: (value) =>
+                onChanged(options.copyWith(skeletonBorderRadius: value)),
+          ),
+          Text(
+              'Animation speed: ${options.skeletonAnimationDuration.inMilliseconds}ms',
+              style: theme.textTheme.bodySmall),
+          Slider(
+            value: options.skeletonAnimationDuration.inMilliseconds
+                .toDouble(),
+            min: 200,
+            max: 2000,
+            divisions: 9,
+            label: '${options.skeletonAnimationDuration.inMilliseconds}ms',
+            onChanged: (value) => onChanged(options.copyWith(
+                skeletonAnimationDuration:
+                    Duration(milliseconds: value.round()))),
+          ),
+        ],
+        const Divider(height: 32),
+        Text('Intensity colors', style: theme.textTheme.titleMedium),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Use custom intensity color scheme'),
+          subtitle: const Text('Overrides the default grey/amber/orange/red'),
+          value: options.useCustomIntensityColors,
+          onChanged: (value) =>
+              onChanged(options.copyWith(useCustomIntensityColors: value)),
         ),
       ],
     );

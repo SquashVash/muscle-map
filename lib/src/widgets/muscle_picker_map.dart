@@ -21,6 +21,17 @@ class MusclePickerMap extends StatefulWidget {
   final List<String>? initialSelectedGroups;
   final bool enableCrossfade;
   final Duration crossfadeDuration;
+  final double strokeWidth;
+  final StrokeCap? strokeCap;
+  final StrokeJoin? strokeJoin;
+  final bool showSkeleton;
+  final WidgetBuilder? loadingBuilder;
+  final Color? skeletonColor;
+  final Duration skeletonAnimationDuration;
+  final double skeletonOpacityBegin;
+  final double skeletonOpacityEnd;
+  final Curve skeletonCurve;
+  final double skeletonBorderRadius;
 
   const MusclePickerMap({
     Key? key,
@@ -37,6 +48,17 @@ class MusclePickerMap extends StatefulWidget {
     this.initialSelectedGroups,
     this.enableCrossfade = true,
     this.crossfadeDuration = const Duration(milliseconds: 100),
+    this.strokeWidth = 1.0,
+    this.strokeCap,
+    this.strokeJoin,
+    this.showSkeleton = true,
+    this.loadingBuilder,
+    this.skeletonColor,
+    this.skeletonAnimationDuration = const Duration(milliseconds: 900),
+    this.skeletonOpacityBegin = 0.4,
+    this.skeletonOpacityEnd = 1.0,
+    this.skeletonCurve = Curves.easeInOut,
+    this.skeletonBorderRadius = 16,
   }) : super(key: key);
 
   @override
@@ -103,11 +125,7 @@ class MusclePickerMapState extends State<MusclePickerMap> {
   @override
   Widget build(BuildContext context) {
     final content = _isLoading
-        ? MuscleMapSkeleton(
-            key: const ValueKey('skeleton'),
-            width: widget.width,
-            height: widget.height,
-          )
+        ? _buildLoading(context)
         : Stack(
             key: ValueKey('map-${widget.map}'),
             children: [
@@ -122,6 +140,33 @@ class MusclePickerMapState extends State<MusclePickerMap> {
     return AnimatedSwitcher(
       duration: widget.crossfadeDuration,
       child: content,
+    );
+  }
+
+  Widget _buildLoading(BuildContext context) {
+    if (widget.loadingBuilder != null) {
+      return KeyedSubtree(
+        key: const ValueKey('skeleton'),
+        child: widget.loadingBuilder!(context),
+      );
+    }
+    if (!widget.showSkeleton) {
+      return SizedBox(
+        key: const ValueKey('skeleton'),
+        width: widget.width,
+        height: widget.height,
+      );
+    }
+    return MuscleMapSkeleton(
+      key: const ValueKey('skeleton'),
+      width: widget.width,
+      height: widget.height,
+      color: widget.skeletonColor,
+      animationDuration: widget.skeletonAnimationDuration,
+      opacityBegin: widget.skeletonOpacityBegin,
+      opacityEnd: widget.skeletonOpacityEnd,
+      curve: widget.skeletonCurve,
+      borderRadius: widget.skeletonBorderRadius,
     );
   }
 
@@ -144,6 +189,9 @@ class MusclePickerMapState extends State<MusclePickerMap> {
           dotColor: widget.dotColor,
           selectedColor: widget.selectedColor,
           strokeColor: widget.strokeColor,
+          strokeWidth: widget.strokeWidth,
+          strokeCap: widget.strokeCap,
+          strokeJoin: widget.strokeJoin,
         ),
         child: Container(
           width: widget.width ?? double.infinity,
