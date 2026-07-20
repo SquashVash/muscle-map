@@ -14,6 +14,7 @@ class MusclePickerMap extends StatefulWidget {
   final Function(Set<Muscle> muscles) onChanged;
   final Color? strokeColor;
   final Color? selectedColor;
+  final Map<String, Color>? muscleColors;
   final Color? dotColor;
   final bool? actAsToggle;
   final bool? isEditing;
@@ -41,6 +42,7 @@ class MusclePickerMap extends StatefulWidget {
     this.height,
     this.strokeColor,
     this.selectedColor,
+    this.muscleColors,
     this.dotColor,
     this.actAsToggle,
     this.isEditing = false,
@@ -187,7 +189,7 @@ class MusclePickerMapState extends State<MusclePickerMap> {
           muscle: muscle,
           selectedMuscles: selectedMuscles,
           dotColor: widget.dotColor,
-          selectedColor: widget.selectedColor,
+          selectedColor: widget.muscleColors?[muscle.id] ?? widget.selectedColor,
           strokeColor: widget.strokeColor,
           strokeWidth: widget.strokeWidth,
           strokeCap: widget.strokeCap,

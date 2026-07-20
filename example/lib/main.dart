@@ -212,6 +212,14 @@ class _BodyMapSwitcher extends StatelessWidget {
   }
 }
 
+/// Demo mapping of muscle id -> custom color, showing that different
+/// selected muscles can render in different colors at once.
+final Map<String, Color> _demoMuscleColors = {
+  for (final id in ['abs1', 'abs2', 'abs3', 'abs4', 'abs5', 'abs6', 'abs7', 'abs8']) id: Colors.green,
+  for (final id in ['chest1', 'chest2']) id: Colors.red,
+  for (final id in ['adductors1', 'adductors2']) id: Colors.purple,
+};
+
 class _SelectTab extends StatelessWidget {
   final String bodyMap;
   final GlobalKey<MusclePickerMapState> pickerKey;
@@ -249,6 +257,7 @@ class _SelectTab extends StatelessWidget {
               actAsToggle: true,
               strokeColor: theme.colorScheme.outline,
               selectedColor: theme.colorScheme.primary,
+              muscleColors: _demoMuscleColors,
               onChanged: onSelectionChanged,
               strokeWidth: options.strokeWidth,
               strokeCap: options.strokeCap,

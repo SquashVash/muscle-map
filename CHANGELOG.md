@@ -1,3 +1,7 @@
+## 1.2.0
+- `MusclePickerMap` accepts `muscleColors` (`Map<String, Color>`) to render individually selected muscles in different colors, falling back to `selectedColor` for muscles not present in the map
+- Example app's Select tab demonstrates `muscleColors` by coloring abs, chest, and adductors differently
+
 ## 1.0.0
 
 - Muscle Selector for Flutter
